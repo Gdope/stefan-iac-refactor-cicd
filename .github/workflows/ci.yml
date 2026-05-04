@@ -1,0 +1,23 @@
+name: Test pipe
+
+on:
+push:
+branches:
+- dev
+- main
+
+pull_request:
+branches:
+- main
+
+workflow_dispatch:
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Code checkout
+    uses: actions/checkout@v4
+```

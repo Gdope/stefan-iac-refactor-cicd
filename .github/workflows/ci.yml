@@ -1,23 +1,9 @@
-name: Test pipe
+name: Stefan-CI
 
 on:
-push:
-branches:
-- dev
-- main
-
-pull_request:
-branches:
-- main
-
-workflow_dispatch:
+  - workflow_dispatch
+  - push
 
 jobs:
-build:
-runs-on: ubuntu-latest
-
-```
-steps:
-  - name: Code checkout
-    uses: actions/checkout@v4
-```
+  Testing:
+    runs-on: ubuntu-latest

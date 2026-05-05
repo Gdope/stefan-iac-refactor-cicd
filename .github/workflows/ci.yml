@@ -101,3 +101,15 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Generate version label
+        id: version
+        run: |
+          VERSION=$(date +'%d%m%y')-${GITHUB_SHA::7}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact to s3
+        run: |
+          ls -lah artifact
+          run s3 cp artifact/*.war s3://${{ secrets.S3_BUCKET }}/stefan-${VERSION}.war

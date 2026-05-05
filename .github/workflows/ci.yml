@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
-
-      - name: Code checkout
-        uses: actions/checkout@v4
 
       - name: Maven test
         run: mvn clean test
@@ -83,7 +83,7 @@ jobs:
           path: target/*.war
 
   download_and_publish_artifact:
-    name: Upload and Download Artifact
+    name: Upload Artifact to S3
     runs-on: ubuntu-latest
     needs: sonarqube
     if: success()
@@ -109,7 +109,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Upload artifact to s3
+      - name: Upload artifact to S3
         run: |
           ls -lah artifact
-          run aws s3 cp artifact/*.war s3://${{ secrets.S3_BUCKET }}/stefan-${VERSION}.war
+          aws s3 cp artifact/*.war s3://${{ secrets.S3_BUCKET }}/stefan-${VERSION}.war

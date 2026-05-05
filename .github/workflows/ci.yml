@@ -112,4 +112,4 @@ jobs:
       - name: Upload artifact to s3
         run: |
           ls -lah artifact
-          run s3 cp artifact/*.war s3://${{ secrets.S3_BUCKET }}/stefan-${VERSION}.war
+          run aws s3 cp artifact/*.war s3://${{ secrets.S3_BUCKET }}/stefan-${VERSION}.war

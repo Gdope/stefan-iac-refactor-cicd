@@ -23,3 +23,55 @@ jobs:
 
       - name: Code checkout
         uses: actions/checkout@v4
+
+      - name: Maven test
+        run: mvn clean test
+
+  sonarqube:
+    name: SonarQube Workflow
+    runs-on: ubuntu-latest
+    needs: testing
+
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup SonarQube
+        uses: warchant/setup-sonar-scanner@v8
+
+      - name: Update application.properties file
+        env:
+          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+          MEMCACHED_ENDPOINT: ${{ secrets.MEMCACHED_ENDPOINT }}
+          RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASS: ${{ secrets.RABBITMQ_PASS }}
+        run: |
+          sed -i "s|jdbc.url=.*|jdbc.url=jdbc:mysql://${RDS_ENDPOINT}:3306/accounts?useUnicode=true\&characterEncoding=UTF-8\&zeroDateTimeBehavior=convertToNull|" src/main/resources/application.properties
+          sed -i "s|memcached.active.host=.*|memcached.active.host=${MEMCACHED_ENDPOINT}|" src/main/resources/application.properties
+          sed -i "s|rabbitmq.address=.*|rabbitmq.address=${RABBITMQ_HOST}|" src/main/resources/application.properties
+          sed -i "s|rabbitmq.username=.*|rabbitmq.username=${RABBITMQ_USER}|" src/main/resources/application.properties
+          sed -i "s|rabbitmq.password=.*|rabbitmq.password=${RABBITMQ_PASS}|" src/main/resources/application.properties
+
+      - name: Maven build
+        run: mvn clean package -DskipTests
+
+      - name: SonarQube Scan
+        run: |
+          sonar-scanner \
+            -Dsonar.host.url=${{ secrets.SONAR_URL }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.sources=src/ \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.junit.reportsPath=target/surefire-reports/ \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml

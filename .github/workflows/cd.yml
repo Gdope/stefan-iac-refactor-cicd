@@ -1,0 +1,33 @@
+name: Deploy to Beanstalk
+
+on:
+  workflow_dispatch:
+    inputs:
+      s3_key:
+        description: "S3 key, npr. stefan-060526-a1b2c3d.war"
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy S3 artifact to Elastic Beanstalk
+        run: |
+          VERSION_LABEL="deploy-${{ github.run_number }}"
+
+          aws elasticbeanstalk create-application-version \
+            --application-name "${{ secrets.AWS_BEAN_NAME }}" \
+            --version-label "$VERSION_LABEL" \
+            --source-bundle S3Bucket="${{ secrets.S3_BUCKET }}",S3Key="${{ github.event.inputs.s3_key }}"
+
+          aws elasticbeanstalk update-environment \
+            --environment-name "${{ secrets.AWS_BEAN_ENV }}" \
+            --version-label "$VERSION_LABEL"

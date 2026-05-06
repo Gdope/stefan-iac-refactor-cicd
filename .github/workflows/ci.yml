@@ -60,6 +60,7 @@ jobs:
           sed -i "s|rabbitmq.address=.*|rabbitmq.address=${RABBITMQ_HOST}|" src/main/resources/application.properties
           sed -i "s|rabbitmq.username=.*|rabbitmq.username=${RABBITMQ_USER}|" src/main/resources/application.properties
           sed -i "s|rabbitmq.password=.*|rabbitmq.password=${RABBITMQ_PASS}|" src/main/resources/application.properties
+          sed -i "s|rabbitmq.port=.*|rabbitmq.port=5671|" src/main/resources/application.properties
 
       - name: Maven build
         run: mvn clean package -DskipTests
@@ -76,15 +77,17 @@ jobs:
             -Dsonar.junit.reportsPath=target/surefire-reports/ \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
-      - name: Rename WAR
+      - name: Rename WAR to ROOT.war
         run: |
-          mv target/*.war target/ROOT.war
+          WAR_FILE=$(ls target/*.war | head -n 1)
+          cp "$WAR_FILE" target/ROOT.war
+          ls -lah target/ROOT.war
 
       - name: Upload artifact to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: stefan_artifact
-          path: target/*.war
+          path: target/ROOT.war
 
   download_and_publish_artifact:
     name: Upload Artifact to S3
@@ -113,7 +116,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Upload artifact to S3
+      - name: Upload ROOT.war artifact to S3
         run: |
           ls -lah artifact
-          aws s3 cp artifact/*.war s3://${{ secrets.S3_BUCKET }}/stefan-${VERSION}.war
+          aws s3 cp artifact/ROOT.war s3://${{ secrets.S3_BUCKET }}/ROOT-${VERSION}.war

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       s3_key:
-        description: "S3 key, npr. stefan-060526-a1b2c3d.war"
+        description: "S3 key, npr. ROOT-060526-7a824b1.war"
         required: true
 
 jobs:

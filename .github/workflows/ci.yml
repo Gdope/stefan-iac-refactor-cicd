@@ -76,6 +76,10 @@ jobs:
             -Dsonar.junit.reportsPath=target/surefire-reports/ \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
+      - name: Rename WAR
+        run: |
+          mv target/*.war target/ROOT.war
+
       - name: Upload artifact to GitHub
         uses: actions/upload-artifact@v4
         with:
